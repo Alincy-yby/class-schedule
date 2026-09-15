@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>2026秋 课表</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:#f5f6fa;color:#2d3436}
+.hdr{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;padding:14px 16px 10px;text-align:center;position:relative;z-index:10}
+.hdr h1{font-size:18px;font-weight:700}
+.hdr .sub{font-size:12px;opacity:.75;margin-top:2px}
+.wk{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px}
+.wk .arr{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:20px;cursor:pointer}
+.wk .arr:active{background:rgba(255,255,255,.4)}
+.wk .info{text-align:center;min-width:140px}
+.wk .wknum{font-size:22px;font-weight:700}
+.wk .wkdate{font-size:11px;opacity:.7;margin-top:1px}
+.main{width:100%;height:calc(100% - 115px);overflow:auto;-webkit-overflow-scrolling:touch}
+.tbl{width:100%;border-collapse:collapse;table-layout:fixed}
+.tbl th{background:#4f46e5;color:#fff;font-size:12px;font-weight:600;padding:10px 0;position:sticky;top:0;z-index:5}
+.tbl th:first-child{width:54px;background:#4338ca;font-size:11px}
+.tbl td{border:1px solid #e0e0e0;font-size:11px;padding:4px;vertical-align:top;height:80px;background:#fff}
+.tbl td:first-child{background:#f0f0ff;font-weight:700;font-size:11px;text-align:center;color:#4f46e5;vertical-align:middle;height:auto;padding:8px 4px;line-height:1.4;white-space:nowrap}
+.tbl td.today{background:#eef2ff}
+.tbl th.today{background:#3730a3}
+.cb{width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:4px;border-radius:6px;min-height:64px}
+.cb .nm{font-weight:700;font-size:11px;line-height:1.3;color:#fff}
+.cb .te{font-size:10px;color:rgba(255,255,255,.85);margin-top:3px}
+.cb .lo{font-size:10px;color:rgba(255,255,255,.75);margin-top:2px;word-break:break-all}
+.cb.on .lo::after{content:" [线上]";background:rgba(255,255,255,.25);padding:1px 4px;border-radius:3px;font-size:9px}
+.lc{margin-top:3px;font-size:9px;color:#e74c3c;background:#fef2f2;padding:2px 4px;border-radius:3px}
+.lw{margin-top:3px;font-size:9px;color:#b45309;background:#fefce8;padding:2px 4px;border-radius:3px}
+.hint{text-align:center;font-size:11px;color:#aaa;padding:6px 0}
+</style>
+</head>
+<body>
+<div class="hdr">
+<h1>2026秋 课表</h1>
+<div class="sub">西安交通大学 · 研究生</div>
+<div class="wk">
+<button class="arr" id="prev">&lt;</button>
+<div class="info"><div class="wknum" id="wknum"></div><div class="wkdate" id="wkdate"></div></div>
+<button class="arr" id="next">&gt;</button>
+</div>
+</div>
+<div class="main" id="main"></div>
+<div class="hint">点击 &lt; &gt; 切换周次</div>
+<script>
+var SD=new Date(2026,8,1);
+var DN=["周一","周二","周三","周四","周五","周六","周日"];
+var SK=["1-2","3-4","5-6","7-8","9-10"];
+var TM=["08:00-09:40","10:00-11:40","14:00-15:40","16:00-17:40","19:00-20:40"];
+var courses=[
+{name:"生物制造工程",teacher:"李涤尘",location:"5-1W107",day:3,sec:[3,4],wk:[9,10,11,12,13,14,15,16],c:"#10b981"},
+{name:"生物制造工程",teacher:"李涤尘",location:"5-1W107",day:3,sec:[5,6],wk:[9,10,11,12,13,14,15,16],c:"#10b981"},
+{name:"马克思主义与当代科技",teacher:"刘小溪",location:"5-6043",day:3,sec:[7,8],wk:[1,2,3,4,5,6,7,8],c:"#ef4444"},
+{name:"计算方法",teacher:"侯延仁",location:"5-1W101",day:4,sec:[3,4],wk:[1,2,3,4,5,6,7,8,9,10,11,12],c:"#3b82f6"},
+{name:"计算方法",teacher:"侯延仁",location:"5-1W101",day:4,sec:[5,6],wk:[1,2,3,4,5,6,7,8,9,10,11,12],c:"#3b82f6"},
+{name:"数据与智能技术应用(AI通识-线上)",teacher:"吴琳",location:"雨课堂 线上",day:4,sec:[3],wk:[18],c:"#8b5cf6"},
+{name:"数据与智能技术应用(AI通识-线上)",teacher:"吴琳",location:"雨课堂 线上",day:5,sec:[3],wk:[18],c:"#8b5cf6"},
+{name:"现代控制工程",teacher:"董霞",location:"5-1W103",day:5,sec:[7,8],wk:[1,2,3,4,5,6,7,8,9,10],c:"#f59e0b"},
+{name:"现代控制工程",teacher:"董霞",location:"5-1W103",day:5,sec:[9,10],wk:[1,2,3,4,5,6,7,8,9,10],c:"#f59e0b"},
+{name:"复杂机电系统的人工智能控制技术(AI进阶)",teacher:"李靖祥",location:"5-2W201",day:6,sec:[2,3,4],wk:[1,2,3,4,5,6,7,8,9,10,11],c:"#6366f1"},
+{name:"微纳制造技术",teacher:"姜维",location:"5-1W103",day:7,sec:[7,8],wk:[1,2,3,4,5,6,7,8,9,10,11],c:"#06b6d4",ov:{11:"曲江校区西五楼微纳制造实验室"}},
+{name:"微纳制造技术",teacher:"姜维",location:"5-1W103",day:7,sec:[9,10],wk:[1,2,3,4,5,6,7,8,9,10,11],c:"#06b6d4",ov:{11:"曲江校区西五楼微纳制造实验室"}}
+];
+var curWk=3;
+var now=new Date();
+var diff=Math.floor((now-SD)/(7*864e5))+1;
+if(diff>=1&&diff<=20)curWk=diff;
+var td=now.getDay();if(td===0)td=7;
+
+document.getElementById("prev").onclick=function(){if(curWk>1){curWk--;draw()}};
+document.getElementById("next").onclick=function(){if(curWk<20){curWk++;draw()}};
+
+function draw(){
+document.getElementById("wknum").textContent="第"+curWk+"周";
+var s=new Date(SD);s.setDate(s.getDate()+(curWk-1)*7);
+var e=new Date(s);e.setDate(e.getDate()+6);
+document.getElementById("wkdate").textContent=(s.getMonth()+1)+"/"+s.getDate()+"-"+(e.getMonth()+1)+"/"+e.getDate();
+var fc={};for(var d=1;d<=7;d++)fc[d]=[];
+for(var i=0;i<courses.length;i++){if(courses[i].wk.indexOf(curWk)>=0)fc[courses[i].day].push(courses[i])}
+var ts=0;for(var d=1;d<=7;d++)for(var j=0;j<fc[d].length;j++)ts+=fc[d][j].sec.length;
+document.getElementById("wkdate").textContent+=" | "+ts+"节";
+
+var h='<table class="tbl"><thead><tr><th>节次</th>';
+for(var d=1;d<=7;d++){
+var cls=d===td?' class="today"':'';
+h+='<th'+cls+'>'+DN[d-1]+'</th>';
+}
+h+='</tr></thead><tbody>';
+
+for(var si=0;si<SK.length;si++){
+h+='<tr><td>'+SK[si]+'节<br><span style="font-size:9px;color:#999;font-weight:400">'+TM[si]+'</span></td>';
+for(var d=1;d<=7;d++){
+var cls=d===td?' class="today"':'';
+var found=null;
+for(var j=0;j<fc[d].length;j++){
+var c=fc[d][j];
+var cs=c.sec[0],ce=c.sec[c.sec.length-1];
+if(cs+"-"+ce===SK[si]){found=c;break}
+}
+if(found){
+var loc=found.location;
+var chg=false,orig="";
+if(found.ov&&found.ov[curWk]){loc=found.ov[curWk];chg=true;orig=found.location}
+var isOn=loc.indexOf("线上")>=0||loc.indexOf("雨课堂")>=0;
+h+='<td'+cls+'>';
+h+='<div class="cb'+(isOn?" on":"")+'" style="background:'+found.c+'">';
+h+='<div class="nm">'+found.name+'</div>';
+h+='<div class="te">'+found.teacher+'</div>';
+h+='<div class="lo">'+loc+'</div>';
+h+='</div>';
+if(chg)h+='<div class="lc">本周变更 原:'+orig+'</div>';
+else if(found.ov){var ow=Object.keys(found.ov);if(ow.length>0&&curWk<parseInt(ow[0]))h+='<div class="lw">第'+ow[0]+'周起→'+found.ov[ow[0]]+'</div>'}
+h+='</td>';
+}else{
+h+='<td'+cls+'></td>';
+}
+}
+h+='</tr>';
+}
+h+='</tbody></table>';
+document.getElementById("main").innerHTML=h;
+}
+draw();
+</script>
+</body>
+</html>

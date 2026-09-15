@@ -99,7 +99,7 @@ var found=null;
 for(var j=0;j<fc[d].length;j++){
 var c=fc[d][j];
 var cs=c.sec[0],ce=c.sec[c.sec.length-1];
-if(cs+"-"+ce===SK[si]){found=c;break}
+var sp=SK[si].split("-");var ss=parseInt(sp[0]);var se=parseInt(sp[1]);if(cs<=se&&ce>=ss){found=c;break}
 }
 if(found){
 var loc=found.location;
